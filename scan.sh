@@ -12,8 +12,15 @@ END_PORT=${3:-65535}
 
 echo "Starting port scan on $IP_ADDRESS from port $START_PORT to $END_PORT..."
 
-for ((port=START_PORT; port<=END_PORT; port++)); do
-  timeout 1 bash -c "echo >/dev/tcp/\"$IP_ADDRESS\"/$port" &>/dev/null && echo "Port $port is open"
-done
+if ! command -v nc &> /dev/null; then
+  for ((port=START_PORT; port<=END_PORT; port++)); do
+    timeout 1 bash -c "echo >/dev/tcp/\"$IP_ADDRESS\"/$port" &>/dev/null && echo "Port $port is open"
+  done
+else
+  for ((port=START_PORT; port<=END_PORT; port++)); do
+    timeout 1 nc -z -w 1 "$IP_ADDRESS" $port &>/dev/null && echo "Port $port is open"
+  done
+fi
+
 
 echo "Port scan completed."
